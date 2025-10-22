@@ -1,158 +1,167 @@
-const pool = require('../config/database');
+const pool = require('./database');
 
-const connectedDrivers = new Map(); // Store driver socket connections
-const connectedPassengers = new Map(); // Store passenger socket connections
+const connectedUsers = new Map(); // Store user socket connections (userId -> socketId)
 
 function initializeSocket(io) {
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    // Driver joins with taxi ID
-    socket.on('driver_join', async (data) => {
-      const { taxiId, driverId } = data;
-      connectedDrivers.set(taxiId, { socketId: socket.id, driverId });
-      socket.join(`taxi_${taxiId}`);
-      console.log(`Driver ${driverId} joined with taxi ${taxiId}`);
+    // User joins with their user ID
+    socket.on('user_join', (data) => {
+      const { userId, role } = data;
+      connectedUsers.set(userId, { socketId: socket.id, role });
+      socket.join(`user_${userId}`);
+      console.log(`User ${userId} (${role}) joined`);
     });
 
-    // Passenger joins with user ID
-    socket.on('passenger_join', (data) => {
-      const { passengerId } = data;
-      connectedPassengers.set(passengerId, socket.id);
-      socket.join(`passenger_${passengerId}`);
-      console.log(`Passenger ${passengerId} joined`);
-    });
-
-    // Real-time location updates from drivers
-    socket.on('location_update', async (data) => {
-      const { taxiId, lat, lng, timestamp } = data;
+    // User joins a chat room
+    socket.on('join_chat', async (data) => {
+      const { chatId, userId } = data;
       
       try {
-        // Update taxi location in database
-        await pool.query(
-          'UPDATE taxis SET current_lat = $1, current_lng = $2, last_location_update = $3 WHERE id = $4',
-          [lat, lng, new Date(timestamp), taxiId]
+        // Verify user is part of this chat
+        const chatCheck = await pool.query(
+          'SELECT patient_id, doctor_id FROM chats WHERE id = $1',
+          [chatId]
         );
 
-        // Store in location history
-        await pool.query(
-          'INSERT INTO taxi_locations (taxi_id, lat, lng, timestamp) VALUES ($1, $2, $3, $4)',
-          [taxiId, lat, lng, new Date(timestamp)]
-        );
-
-        // Broadcast location to nearby passengers
-        socket.broadcast.emit('taxi_location_update', {
-          taxiId,
-          lat,
-          lng,
-          timestamp
-        });
-
-        console.log(`Location updated for taxi ${taxiId}: ${lat}, ${lng}`);
-      } catch (error) {
-        console.error('Error updating location:', error);
-      }
-    });
-
-    // Booking request from passenger
-    socket.on('booking_request', async (data) => {
-      const { passengerId, pickupLat, pickupLng, destinationLat, destinationLng } = data;
-      
-      try {
-        // Find nearby available taxis (within 5km radius)
-        const nearbyTaxis = await pool.query(`
-          SELECT t.id, t.driver_id, t.vehicle_type, t.plate_number, t.current_lat, t.current_lng,
-                 u.first_name, u.last_name,
-                 (6371 * acos(cos(radians($1)) * cos(radians(t.current_lat)) 
-                 * cos(radians(t.current_lng) - radians($2)) + sin(radians($1)) 
-                 * sin(radians(t.current_lat)))) AS distance
-          FROM taxis t
-          JOIN users u ON t.driver_id = u.id
-          WHERE t.is_available = true 
-          AND t.current_lat IS NOT NULL 
-          AND t.current_lng IS NOT NULL
-          HAVING distance < 5
-          ORDER BY distance
-          LIMIT 10
-        `, [pickupLat, pickupLng]);
-
-        // Send booking request to nearby drivers
-        nearbyTaxis.rows.forEach(taxi => {
-          const driverConnection = connectedDrivers.get(taxi.id);
-          if (driverConnection) {
-            io.to(driverConnection.socketId).emit('booking_request', {
-              passengerId,
-              pickupLat,
-              pickupLng,
-              destinationLat,
-              destinationLng,
-              distance: taxi.distance
-            });
+        if (chatCheck.rows.length > 0) {
+          const chat = chatCheck.rows[0];
+          if (chat.patient_id === userId || chat.doctor_id === userId) {
+            socket.join(`chat_${chatId}`);
+            console.log(`User ${userId} joined chat ${chatId}`);
+            
+            // Notify other users in chat
+            socket.to(`chat_${chatId}`).emit('user_joined_chat', { userId });
           }
-        });
-
-        // Notify passenger about request sent
-        socket.emit('booking_request_sent', {
-          nearbyTaxisCount: nearbyTaxis.rows.length
-        });
-
+        }
       } catch (error) {
-        console.error('Error processing booking request:', error);
-        socket.emit('booking_error', { message: 'Failed to process booking request' });
+        console.error('Error joining chat:', error);
       }
     });
 
-    // Driver accepts booking
-    socket.on('accept_booking', async (data) => {
-      const { taxiId, passengerId, estimatedArrival } = data;
+    // Send message in chat
+    socket.on('send_message', async (data) => {
+      const { chatId, senderId, content, attachments, messageType } = data;
       
       try {
-        // Create booking record
-        const booking = await pool.query(
-          'INSERT INTO bookings (passenger_id, taxi_id, pickup_lat, pickup_lng, destination_lat, destination_lng, status, estimated_arrival) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-          [passengerId, taxiId, data.pickupLat, data.pickupLng, data.destinationLat, data.destinationLng, 'accepted', estimatedArrival]
+        // Verify user is part of this chat
+        const chatCheck = await pool.query(
+          'SELECT patient_id, doctor_id FROM chats WHERE id = $1',
+          [chatId]
         );
 
-        // Update taxi availability
-        await pool.query('UPDATE taxis SET is_available = false WHERE id = $1', [taxiId]);
-
-        // Notify passenger
-        const passengerSocketId = connectedPassengers.get(passengerId);
-        if (passengerSocketId) {
-          io.to(passengerSocketId).emit('booking_accepted', {
-            bookingId: booking.rows[0].id,
-            taxiId,
-            estimatedArrival
-          });
+        if (chatCheck.rows.length === 0) {
+          socket.emit('message_error', { error: 'Chat not found' });
+          return;
         }
 
-        socket.emit('booking_accepted_confirmation', {
-          bookingId: booking.rows[0].id
-        });
+        const chat = chatCheck.rows[0];
+        if (chat.patient_id !== senderId && chat.doctor_id !== senderId) {
+          socket.emit('message_error', { error: 'Unauthorized' });
+          return;
+        }
+
+        // Save message to database
+        const result = await pool.query(
+          `INSERT INTO messages (chat_id, sender_id, content, attachments, message_type) 
+           VALUES ($1, $2, $3, $4, $5) 
+           RETURNING *`,
+          [chatId, senderId, content, attachments || [], messageType || 'text']
+        );
+
+        const message = result.rows[0];
+
+        // Update chat updated_at timestamp
+        await pool.query(
+          'UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+          [chatId]
+        );
+
+        // Get sender info
+        const senderInfo = await pool.query(
+          'SELECT first_name, last_name FROM users WHERE id = $1',
+          [senderId]
+        );
+
+        const messageData = {
+          ...message,
+          sender_first_name: senderInfo.rows[0].first_name,
+          sender_last_name: senderInfo.rows[0].last_name
+        };
+
+        // Broadcast message to all users in the chat room
+        io.to(`chat_${chatId}`).emit('new_message', messageData);
+
+        // Send push notification to offline users
+        const recipientId = chat.patient_id === senderId ? chat.doctor_id : chat.patient_id;
+        const recipientConnection = connectedUsers.get(recipientId);
+        
+        if (!recipientConnection) {
+          // User is offline - would trigger push notification here
+          console.log(`User ${recipientId} is offline - push notification needed`);
+        }
 
       } catch (error) {
-        console.error('Error accepting booking:', error);
-        socket.emit('booking_error', { message: 'Failed to accept booking' });
+        console.error('Error sending message:', error);
+        socket.emit('message_error', { error: 'Failed to send message' });
+      }
+    });
+
+    // Typing indicator
+    socket.on('typing', (data) => {
+      const { chatId, userId } = data;
+      socket.to(`chat_${chatId}`).emit('user_typing', { userId });
+    });
+
+    socket.on('stop_typing', (data) => {
+      const { chatId, userId } = data;
+      socket.to(`chat_${chatId}`).emit('user_stop_typing', { userId });
+    });
+
+    // Mark messages as read
+    socket.on('mark_read', async (data) => {
+      const { chatId, userId } = data;
+      
+      try {
+        await pool.query(
+          `UPDATE messages SET read_flag = true 
+           WHERE chat_id = $1 AND sender_id != $2 AND read_flag = false`,
+          [chatId, userId]
+        );
+
+        socket.to(`chat_${chatId}`).emit('messages_read', { chatId, userId });
+      } catch (error) {
+        console.error('Error marking messages as read:', error);
+      }
+    });
+
+    // Doctor availability status update
+    socket.on('update_availability', async (data) => {
+      const { doctorId, isAvailable } = data;
+      
+      try {
+        await pool.query(
+          'UPDATE doctors SET is_available = $1 WHERE user_id = $2',
+          [isAvailable, doctorId]
+        );
+
+        // Broadcast availability change
+        io.emit('doctor_availability_changed', { doctorId, isAvailable });
+      } catch (error) {
+        console.error('Error updating availability:', error);
       }
     });
 
     socket.on('disconnect', () => {
-      // Remove from connected drivers/passengers
-      for (const [taxiId, connection] of connectedDrivers.entries()) {
+      // Remove user from connected users
+      for (const [userId, connection] of connectedUsers.entries()) {
         if (connection.socketId === socket.id) {
-          connectedDrivers.delete(taxiId);
+          connectedUsers.delete(userId);
+          console.log(`User ${userId} disconnected`);
           break;
         }
       }
-      
-      for (const [passengerId, socketId] of connectedPassengers.entries()) {
-        if (socketId === socket.id) {
-          connectedPassengers.delete(passengerId);
-          break;
-        }
-      }
-      
-      console.log('User disconnected:', socket.id);
     });
   });
 }
