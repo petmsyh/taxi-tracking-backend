@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const doctorRoutes = require('./routes/doctors');
@@ -24,11 +26,21 @@ const io = socketIo(server, {
   }
 });
 
-// Middleware
+// Security Middleware
+app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:3000",
   credentials: true
 }));
+
+// Request Logging (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
+
+// Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,7 +70,7 @@ app.use((req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({ 
     error: err.message || 'Internal server error' 
