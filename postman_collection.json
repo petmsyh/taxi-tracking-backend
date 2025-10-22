@@ -1,0 +1,475 @@
+{
+  "info": {
+    "name": "Medical Platform API",
+    "description": "API collection for Arba Minch University Medical Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"password\": \"Test1234!\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"role\": \"patient\",\n  \"phone\": \"+251912345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"doctor@example.com\",\n  \"password\": \"Test1234!\",\n  \"first_name\": \"Dr. Jane\",\n  \"last_name\": \"Smith\",\n  \"role\": \"doctor\",\n  \"phone\": \"+251911111111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('authToken', response.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"patient@example.com\",\n  \"password\": \"Test1234!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Doctors",
+      "item": [
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors?specialty=Cardiology&available=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors"],
+              "query": [
+                {
+                  "key": "specialty",
+                  "value": "Cardiology"
+                },
+                {
+                  "key": "available",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/:doctorId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", ":doctorId"]
+            }
+          }
+        },
+        {
+          "name": "Update Doctor Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"specialties\": [\"Cardiology\", \"Internal Medicine\"],\n  \"qualifications\": [\"MD\", \"FACC\"],\n  \"bio\": \"Experienced cardiologist with 10+ years of practice\",\n  \"consultation_fee\": 500,\n  \"is_available\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/doctors/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "doctors", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chats",
+      "item": [
+        {
+          "name": "Create Chat Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor_id\": \"doctor-uuid-here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats"]
+            }
+          }
+        },
+        {
+          "name": "Get User Chats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Chat Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/:chatId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", ":chatId"]
+            }
+          }
+        },
+        {
+          "name": "Update Chat Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chats/:chatId/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "chats", ":chatId", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ratings",
+      "item": [
+        {
+          "name": "Submit Rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor_id\": \"doctor-uuid-here\",\n  \"chat_id\": \"chat-uuid-here\",\n  \"rating\": 5,\n  \"review_text\": \"Excellent doctor! Very professional and helpful.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ratings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ratings"]
+            }
+          }
+        },
+        {
+          "name": "Get Doctor Ratings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ratings/doctor/:doctorId?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ratings", "doctor", ":doctorId"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Symptom Checker",
+      "item": [
+        {
+          "name": "Check Symptoms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symptoms\": \"I have been experiencing fever and persistent cough for the last 3 days\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/symptom-checker/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "symptom-checker", "check"]
+            }
+          }
+        },
+        {
+          "name": "Get Symptom History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/symptom-checker/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "symptom-checker", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?role=doctor&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "doctor"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verified\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/doctors/:doctorId/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "doctors", ":doctorId", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/statistics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/audit-logs?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "audit-logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    }
+  ]
+}
