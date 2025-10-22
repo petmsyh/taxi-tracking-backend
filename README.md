@@ -84,19 +84,19 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-4. Create the database:
+4. Set up the database:
 ```bash
-createdb medical_platform
-```
+# Option 1: Automated setup (recommended)
+npm run setup-db
 
-5. Run the database schema:
-```bash
+# Option 2: Manual setup
+createdb medical_platform
 psql -d medical_platform -f Schema.sql
 ```
 
-6. Start the server:
+5. Start the server:
 ```bash
-# Development
+# Development (with auto-reload)
 npm run dev
 
 # Production
@@ -104,6 +104,23 @@ npm start
 ```
 
 The server will start on `http://localhost:5000` (or the PORT specified in .env)
+
+## Quick Start with Docker
+
+The fastest way to get started is using Docker Compose:
+
+```bash
+# Start all services (API + PostgreSQL)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f api
+
+# Stop services
+docker-compose down
+```
+
+Access the API at http://localhost:5000
 
 ## API Documentation
 
@@ -341,6 +358,30 @@ npm run dev
 
 This uses nodemon for auto-reloading on code changes.
 
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
+### Database Management
+```bash
+# Setup database with default admin user
+npm run setup-db
+
+# Verify system configuration
+npm run verify
+```
+
 ### Environment Variables
 
 Key environment variables (see `.env.example`):
@@ -349,7 +390,75 @@ Key environment variables (see `.env.example`):
 - `PORT`: Server port
 - `CORS_ORIGIN`: Allowed frontend origin
 
+## Testing
+
+The project includes comprehensive tests:
+- Health check tests
+- Authentication API tests
+- More tests to be added
+
+Import the `postman_collection.json` into Postman for API testing.
+
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions including:
+- Local deployment
+- Docker deployment
+- Cloud platform deployment (Heroku, AWS, DigitalOcean)
+- Production configuration
+- Monitoring and maintenance
+
+## Docker Support
+
+Build and run with Docker:
+```bash
+# Build image
+docker build -t medical-platform-api .
+
+# Run container
+docker run -p 5000:5000 \
+  -e DB_HOST=your-db-host \
+  -e JWT_SECRET=your-secret \
+  medical-platform-api
+```
+
+Or use docker-compose for local development:
+```bash
+docker-compose up -d
+```
+
+## CI/CD
+
+The project includes a GitHub Actions workflow that:
+- Runs tests on every push/PR
+- Performs security audits
+- Builds Docker images
+- Runs linting checks
+
+See `.github/workflows/ci.yml` for details.
+
+## Project Structure
+
+```
+taxi-tracking-backend/
+├── .github/          # GitHub Actions workflows
+├── middleware/       # Express middleware
+├── routes/          # API route handlers
+├── scripts/         # Utility scripts
+├── tests/           # Test files
+├── utils/           # Utility functions
+├── database.js      # Database connection
+├── server.js        # Main entry point
+└── socketHandler.js # WebSocket handlers
+```
+
 ## Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Coding standards
+- Pull request process
+- Testing guidelines
 
 1. Fork the repository
 2. Create a feature branch

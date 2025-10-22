@@ -1,8 +1,12 @@
 {
   "name": "medical-platform-backend",
   "version": "1.0.0",
-  "description": "Arba Minch University Medical Consultation Platform Backend",
+  "description": "Arba Minch University Medical Consultation Platform Backend - A comprehensive telemedicine platform with real-time chat, AI symptom checker, and doctor-patient consultation system",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
@@ -40,9 +44,22 @@
     "telemedicine",
     "consultation",
     "chat",
+    "websocket",
+    "real-time",
     "AI",
-    "symptom-checker"
+    "symptom-checker",
+    "doctor-patient",
+    "ethiopia",
+    "arbaminch"
   ],
   "author": "Arba Minch University",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/petmsyh/taxi-tracking-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/petmsyh/taxi-tracking-backend/issues"
+  },
+  "homepage": "https://github.com/petmsyh/taxi-tracking-backend#readme"
 }
