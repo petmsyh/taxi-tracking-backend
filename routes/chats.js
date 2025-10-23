@@ -42,7 +42,7 @@ router.post('/',
       );
 
       if (existingChat.rows.length > 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Active chat already exists',
           chat_id: existingChat.rows[0].id
         });
@@ -92,11 +92,11 @@ router.get('/', authenticate, async (req, res) => {
     const params = [userId];
 
     if (status) {
-      query += ` AND c.status = $2`;
+      query += ' AND c.status = $2';
       params.push(status);
     }
 
-    query += ` ORDER BY c.updated_at DESC`;
+    query += ' ORDER BY c.updated_at DESC';
 
     const result = await pool.query(query, params);
 
@@ -183,7 +183,7 @@ router.put('/:chatId/status',
     try {
       // Verify user is part of the chat
       const chatCheck = await pool.query(
-        `SELECT patient_id, doctor_id FROM chats WHERE id = $1`,
+        'SELECT patient_id, doctor_id FROM chats WHERE id = $1',
         [chatId]
       );
 
