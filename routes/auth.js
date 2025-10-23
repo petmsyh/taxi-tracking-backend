@@ -9,7 +9,7 @@ const { JWT_SECRET } = require('../middleware/auth');
 const router = express.Router();
 
 // Register new user
-router.post('/register', 
+router.post('/register',
   authLimiter,
   validateInput({
     email: { required: true, email: true },

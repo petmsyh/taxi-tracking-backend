@@ -10,7 +10,7 @@ router.get('/users',
   authorize('admin'),
   async (req, res) => {
     const { role, verified, page = 1, limit = 20 } = req.query;
-    
+
     try {
       const offset = (page - 1) * limit;
       let query = 'SELECT id, email, role, first_name, last_name, phone, verified, created_at FROM users WHERE 1=1';
