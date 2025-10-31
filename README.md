@@ -42,6 +42,40 @@ A comprehensive medical consultation platform backend for Arba Minch University 
   - System statistics
   - Audit logs
 
+### Phase 2 Features (Implemented)
+
+- **Appointment Scheduling System**
+  - Create, view, update, and cancel appointments
+  - Appointment conflict detection
+  - Multiple appointment types (consultation, follow-up, emergency, checkup)
+  - Appointment status management (pending, confirmed, completed, cancelled, no_show)
+  - Date/time validation with future-only scheduling
+  - Real-time appointment notifications
+
+- **Prescription Management**
+  - Doctors can create digital prescriptions
+  - Structured medication information (name, dosage, frequency, duration)
+  - Prescription history tracking
+  - Link prescriptions to appointments or consultations
+  - Prescription status management (active, expired, cancelled)
+  - Patient prescription history
+
+- **Medical Records Management**
+  - Upload and manage medical documents
+  - Support for multiple file types (lab results, X-rays, scans, reports)
+  - File metadata tracking (size, type, uploader)
+  - Patient and doctor access control
+  - Link records to specific appointments
+  - Medical record statistics
+
+- **Notifications System**
+  - Real-time notifications via WebSocket
+  - Notification types (appointments, messages, prescriptions, ratings, system)
+  - Mark as read/unread functionality
+  - Notification priority levels
+  - Clear read notifications
+  - Notification statistics by type
+
 - **Security Features**
   - Rate limiting on all endpoints
   - Input validation and sanitization
@@ -269,6 +303,194 @@ GET /api/admin/audit-logs?page=1&limit=50
 Authorization: Bearer <token>
 ```
 
+### Appointment Endpoints
+
+#### Create Appointment
+```http
+POST /api/appointments
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "doctor_id": "uuid",
+  "appointment_date": "2025-11-15T10:00:00Z",
+  "duration_minutes": 30,
+  "appointment_type": "consultation",
+  "reason": "Regular checkup"
+}
+```
+
+#### Get Appointments
+```http
+GET /api/appointments?status=pending&from_date=2025-11-01&page=1&limit=20
+Authorization: Bearer <token>
+```
+
+#### Get Appointment Details
+```http
+GET /api/appointments/:appointmentId
+Authorization: Bearer <token>
+```
+
+#### Update Appointment (Reschedule)
+```http
+PUT /api/appointments/:appointmentId
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "appointment_date": "2025-11-16T14:00:00Z",
+  "notes": "Rescheduled due to conflict"
+}
+```
+
+#### Update Appointment Status
+```http
+PUT /api/appointments/:appointmentId/status
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "status": "confirmed",
+  "notes": "Confirmed by doctor"
+}
+```
+
+#### Delete Appointment
+```http
+DELETE /api/appointments/:appointmentId
+Authorization: Bearer <token>
+```
+
+### Prescription Endpoints
+
+#### Create Prescription (Doctor only)
+```http
+POST /api/prescriptions
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "patient_id": "uuid",
+  "diagnosis": "Common cold",
+  "medications": [
+    {
+      "name": "Paracetamol",
+      "dosage": "500mg",
+      "frequency": "3 times daily",
+      "duration": "5 days",
+      "instructions": "Take after meals"
+    }
+  ],
+  "additional_instructions": "Rest and drink plenty of fluids",
+  "valid_until": "2025-12-31"
+}
+```
+
+#### Get Prescriptions
+```http
+GET /api/prescriptions?status=active&page=1&limit=20
+Authorization: Bearer <token>
+```
+
+#### Get Prescription Details
+```http
+GET /api/prescriptions/:prescriptionId
+Authorization: Bearer <token>
+```
+
+#### Update Prescription Status (Doctor only)
+```http
+PUT /api/prescriptions/:prescriptionId/status
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "status": "cancelled"
+}
+```
+
+### Notification Endpoints
+
+#### Get Notifications
+```http
+GET /api/notifications?is_read=false&notification_type=appointment&page=1&limit=50
+Authorization: Bearer <token>
+```
+
+#### Mark Notification as Read
+```http
+PUT /api/notifications/:notificationId/read
+Authorization: Bearer <token>
+```
+
+#### Mark All Notifications as Read
+```http
+PUT /api/notifications/read-all
+Authorization: Bearer <token>
+```
+
+#### Delete Notification
+```http
+DELETE /api/notifications/:notificationId
+Authorization: Bearer <token>
+```
+
+#### Get Notification Statistics
+```http
+GET /api/notifications/stats
+Authorization: Bearer <token>
+```
+
+### Medical Records Endpoints
+
+#### Upload Medical Record
+```http
+POST /api/medical-records
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "patient_id": "uuid",
+  "record_type": "lab_result",
+  "title": "Blood Test Results",
+  "description": "Complete blood count",
+  "file_name": "blood_test_2025.pdf",
+  "file_size": 524288,
+  "file_type": "application/pdf"
+}
+```
+
+#### Get Medical Records
+```http
+GET /api/medical-records?patient_id=uuid&record_type=lab_result&page=1&limit=20
+Authorization: Bearer <token>
+```
+
+#### Get Medical Record Details
+```http
+GET /api/medical-records/:recordId
+Authorization: Bearer <token>
+```
+
+#### Update Medical Record
+```http
+PUT /api/medical-records/:recordId
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Updated Blood Test Results",
+  "description": "Complete blood count - corrected"
+}
+```
+
+#### Delete Medical Record
+```http
+DELETE /api/medical-records/:recordId
+Authorization: Bearer <token>
+```
+
 ## WebSocket Events
 
 ### Client to Server
@@ -280,6 +502,7 @@ Authorization: Bearer <token>
 - `stop_typing`: Stop typing indication
 - `mark_read`: Mark messages as read
 - `update_availability`: Update doctor availability (doctors only)
+- `send_notification`: Send notification to specific user (system use)
 
 ### Server to Client
 
@@ -290,6 +513,8 @@ Authorization: Bearer <token>
 - `user_stop_typing`: User stopped typing
 - `messages_read`: Messages were marked as read
 - `doctor_availability_changed`: Doctor availability changed
+- `new_notification`: New notification received
+- `appointment_updated`: Appointment status changed
 
 ## Database Schema
 
@@ -300,6 +525,10 @@ The database includes the following main tables:
 - `messages`: Chat messages
 - `ratings`: Doctor ratings
 - `symptom_checks`: AI symptom checker logs
+- `appointments`: Scheduled appointments between patients and doctors
+- `prescriptions`: Digital prescriptions from doctors
+- `medical_records`: Patient medical documents and files
+- `notifications`: User notifications
 - `medical_knowledge_base`: For RAG system (future)
 - `student_progress`: For AI tutor (future)
 - `audit_logs`: Security and compliance logs
@@ -316,13 +545,16 @@ The database includes the following main tables:
 
 ## Future Enhancements
 
-### Phase 2 (Post-MVP)
-- Video consultations integration (Twilio/Agora)
-- Appointment scheduling with calendar sync
-- Payment integration (Stripe/local payment gateways)
-- Prescription generation and e-prescription
-- File upload for medical images (AWS S3)
-- Multi-language support (Amharic + English)
+### Phase 2 (Post-MVP) - ✅ Completed
+- ✅ Appointment scheduling system
+- ✅ Prescription generation and management
+- ✅ Medical records and file management  
+- ✅ Notifications system
+- 🔜 Video consultations integration (Twilio/Agora)
+- 🔜 Calendar sync for appointments
+- 🔜 Payment integration (Stripe/local payment gateways)
+- 🔜 AWS S3 for file storage
+- 🔜 Multi-language support (Amharic + English)
 
 ### Phase 3 (Advanced Features)
 - Full RAG-based AI symptom checker with vector database (Pinecone/Weaviate)
