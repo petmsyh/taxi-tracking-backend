@@ -182,8 +182,10 @@ function initializeSocket(io) {
     sendNotification: (userId, notification) => {
       io.to(`user_${userId}`).emit('new_notification', notification);
     },
-    broadcastAppointmentUpdate: (appointmentId, data) => {
-      io.emit('appointment_updated', { appointmentId, ...data });
+    broadcastAppointmentUpdate: (patientId, doctorId, data) => {
+      // Send to both patient and doctor involved in the appointment
+      io.to(`user_${patientId}`).emit('appointment_updated', data);
+      io.to(`user_${doctorId}`).emit('appointment_updated', data);
     }
   };
 }

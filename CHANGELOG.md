@@ -5,6 +5,27 @@ All notable changes to the Arba Minch University Medical Platform will be docume
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-10-31
+
+### Fixed
+
+#### Critical Fixes
+- Fixed appointment conflict detection to use actual duration instead of fixed 1-hour window
+- Fixed rescheduling conflict check to account for appointment duration
+- Changed `/api/notifications/clear-read` from DELETE to POST (semantically correct)
+- Enhanced targeted WebSocket broadcasts for appointment updates (patient and doctor only)
+
+#### Security Enhancements
+- Added detailed security notes for doctor-patient relationship verification
+- Documented TODOs for production security requirements
+- Enhanced comments explaining authorization decisions
+- Added comprehensive security documentation in SECURITY_SUMMARY.md
+
+#### Documentation
+- Updated verification script with correct HTTP methods
+- Added security notes in medical records routes
+- Clarified authorization requirements
+
 ## [2.0.0] - 2025-10-31
 
 ### Added - Phase 2 Core Features

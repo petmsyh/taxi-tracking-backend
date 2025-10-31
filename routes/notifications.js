@@ -153,8 +153,8 @@ router.delete('/:id', authenticate, async (req, res) => {
   }
 });
 
-// Delete all read notifications
-router.delete('/clear-read', authenticate, async (req, res) => {
+// Clear all read notifications (use POST for action-based endpoint)
+router.post('/clear-read', authenticate, async (req, res) => {
   try {
     const userId = req.userId;
 

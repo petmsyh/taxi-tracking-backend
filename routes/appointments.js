@@ -38,12 +38,18 @@ router.post('/', authenticate, validateInput, async (req, res) => {
     }
 
     // Check for scheduling conflicts (doctor already has appointment at that time)
+    // Use the actual duration to calculate time window
+    const duration = duration_minutes || 30;
     const conflictCheck = await pool.query(
       `SELECT id FROM appointments 
        WHERE doctor_id = $1 
        AND status NOT IN ('cancelled', 'completed', 'no_show')
-       AND appointment_date BETWEEN $2 - INTERVAL '1 hour' AND $2 + INTERVAL '1 hour'`,
-      [doctor_id, appointment_date]
+       AND (
+         (appointment_date <= $2 AND appointment_date + (duration_minutes || ' minutes')::interval > $2)
+         OR
+         (appointment_date < $2 + ($3 || ' minutes')::interval AND appointment_date > $2)
+       )`,
+      [doctor_id, appointment_date, duration]
     );
 
     if (conflictCheck.rows.length > 0) {
@@ -396,14 +402,21 @@ router.put('/:id', authenticate, async (req, res) => {
         return res.status(400).json({ error: 'Appointment date must be in the future' });
       }
 
-      // Check for conflicts
+      // Check for conflicts - use actual appointment duration
+      const currentDuration = appointment.duration_minutes || 30;
+      const newDuration = duration_minutes || currentDuration;
+      
       const conflictCheck = await pool.query(
         `SELECT id FROM appointments 
          WHERE doctor_id = $1 
          AND id != $2
          AND status NOT IN ('cancelled', 'completed', 'no_show')
-         AND appointment_date BETWEEN $3 - INTERVAL '1 hour' AND $3 + INTERVAL '1 hour'`,
-        [appointment.doctor_id, id, appointment_date]
+         AND (
+           (appointment_date <= $3 AND appointment_date + (duration_minutes || ' minutes')::interval > $3)
+           OR
+           (appointment_date < $3 + ($4 || ' minutes')::interval AND appointment_date > $3)
+         )`,
+        [appointment.doctor_id, id, appointment_date, newDuration]
       );
 
       if (conflictCheck.rows.length > 0) {

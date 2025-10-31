@@ -157,8 +157,12 @@ router.get('/', authenticate, async (req, res) => {
       params.push(userId);
       paramIndex++;
     } else if (userRole === 'doctor' && patient_id) {
-      // Doctors can query specific patient's records (if they have treated them)
-      // TODO: Add verification that doctor has treated this patient
+      // SECURITY NOTE: Doctors can query specific patient's records
+      // TODO: In production, verify doctor-patient relationship by checking:
+      // - Past appointments between doctor and patient
+      // - Active consultations (chats)
+      // - Doctor has prescribed medication for this patient
+      // This prevents doctors from accessing arbitrary patient records
       query += ` AND mr.patient_id = $${paramIndex}`;
       params.push(patient_id);
       paramIndex++;
@@ -253,7 +257,13 @@ router.get('/:id', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // TODO: For doctors, verify they have treated this patient before allowing access
+    // SECURITY NOTE: For doctors accessing patient records
+    // TODO: In production, verify doctor-patient relationship before allowing access
+    // Check if doctor has:
+    // - Past appointments with this patient
+    // - Active/completed consultations (chats)
+    // - Written prescriptions for this patient
+    // This prevents unauthorized access to arbitrary patient records
 
     res.json({ record });
   } catch (error) {
@@ -394,7 +404,13 @@ router.get('/stats/:patientId', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // TODO: For doctors, verify they have treated this patient
+    // SECURITY NOTE: For doctors accessing patient statistics
+    // TODO: In production, verify doctor-patient relationship
+    // Recommend checking if doctor has treated this patient via:
+    // - Appointments (completed/confirmed status)
+    // - Consultations (completed chats)
+    // - Prescriptions written
+    // This is important for HIPAA/PHI compliance
 
     const result = await pool.query(
       `SELECT 

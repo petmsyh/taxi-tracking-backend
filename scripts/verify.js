@@ -39,6 +39,8 @@ const routes = [
   { path: '/api/notifications/:id/read', method: 'PUT', description: 'Mark notification as read' },
   { path: '/api/notifications/read-all', method: 'PUT', description: 'Mark all as read' },
   { path: '/api/notifications/:id', method: 'DELETE', description: 'Delete notification' },
+  { path: '/api/notifications/clear-read', method: 'POST', description: 'Clear read notifications' },
+  { path: '/api/notifications/stats', method: 'GET', description: 'Get notification statistics' },
   { path: '/api/medical-records', method: 'POST', description: 'Upload medical record' },
   { path: '/api/medical-records', method: 'GET', description: 'Get medical records' },
   { path: '/api/medical-records/:id', method: 'GET', description: 'Get medical record details' },
