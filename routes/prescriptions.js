@@ -322,6 +322,9 @@ router.put('/:id/status', authenticate, requireRole(['doctor']), async (req, res
 });
 
 // Get patient's prescription history with a specific doctor
+// Note: patientId in URL is acceptable because:
+// - Route is restricted to doctors only (requireRole middleware)
+// - Query filters by both patient_id AND doctor_id ensuring doctors only see their own prescriptions
 router.get('/history/:patientId', authenticate, requireRole(['doctor']), async (req, res) => {
   try {
     const { patientId } = req.params;

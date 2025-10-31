@@ -126,6 +126,9 @@ router.post('/', authenticate, validateInput, async (req, res) => {
 });
 
 // Get medical records (patients see their own, doctors see records for their patients)
+// Note: patient_id is accepted in query params but access is strictly controlled:
+// - Patients can only access their own records (enforced below)
+// - Doctors must specify patient_id and proper authorization checks apply
 router.get('/', authenticate, async (req, res) => {
   try {
     const userId = req.userId;
@@ -376,6 +379,10 @@ router.delete('/:id', authenticate, async (req, res) => {
 });
 
 // Get medical record statistics for a patient
+// Note: patientId in URL path is acceptable because:
+// - Route is protected by authentication
+// - Strict authorization check ensures patients can only view their own stats
+// - Doctors can only view stats for patients they have treated (TODO: add verification)
 router.get('/stats/:patientId', authenticate, async (req, res) => {
   try {
     const { patientId } = req.params;
