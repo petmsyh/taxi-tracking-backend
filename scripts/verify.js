@@ -24,7 +24,28 @@ const routes = [
   { path: '/api/admin/users', method: 'GET', description: 'Get all users (admin)' },
   { path: '/api/admin/doctors/:id/verify', method: 'PUT', description: 'Verify doctor (admin)' },
   { path: '/api/admin/statistics', method: 'GET', description: 'Get statistics (admin)' },
-  { path: '/api/admin/audit-logs', method: 'GET', description: 'Get audit logs (admin)' }
+  { path: '/api/admin/audit-logs', method: 'GET', description: 'Get audit logs (admin)' },
+  { path: '/api/appointments', method: 'POST', description: 'Create appointment' },
+  { path: '/api/appointments', method: 'GET', description: 'Get appointments' },
+  { path: '/api/appointments/:id', method: 'GET', description: 'Get appointment details' },
+  { path: '/api/appointments/:id', method: 'PUT', description: 'Update appointment' },
+  { path: '/api/appointments/:id/status', method: 'PUT', description: 'Update appointment status' },
+  { path: '/api/appointments/:id', method: 'DELETE', description: 'Delete appointment' },
+  { path: '/api/prescriptions', method: 'POST', description: 'Create prescription (doctor)' },
+  { path: '/api/prescriptions', method: 'GET', description: 'Get prescriptions' },
+  { path: '/api/prescriptions/:id', method: 'GET', description: 'Get prescription details' },
+  { path: '/api/prescriptions/:id/status', method: 'PUT', description: 'Update prescription status' },
+  { path: '/api/notifications', method: 'GET', description: 'Get notifications' },
+  { path: '/api/notifications/:id/read', method: 'PUT', description: 'Mark notification as read' },
+  { path: '/api/notifications/read-all', method: 'PUT', description: 'Mark all as read' },
+  { path: '/api/notifications/:id', method: 'DELETE', description: 'Delete notification' },
+  { path: '/api/notifications/clear-read', method: 'POST', description: 'Clear read notifications' },
+  { path: '/api/notifications/stats', method: 'GET', description: 'Get notification statistics' },
+  { path: '/api/medical-records', method: 'POST', description: 'Upload medical record' },
+  { path: '/api/medical-records', method: 'GET', description: 'Get medical records' },
+  { path: '/api/medical-records/:id', method: 'GET', description: 'Get medical record details' },
+  { path: '/api/medical-records/:id', method: 'PUT', description: 'Update medical record' },
+  { path: '/api/medical-records/:id', method: 'DELETE', description: 'Delete medical record' }
 ];
 
 console.log('📋 Configured API Routes:\n');
@@ -55,6 +76,10 @@ const keyFiles = [
   'routes/ratings.js',
   'routes/symptomChecker.js',
   'routes/admin.js',
+  'routes/appointments.js',
+  'routes/prescriptions.js',
+  'routes/notifications.js',
+  'routes/medicalRecords.js',
   'middleware/auth.js',
   'middleware/rateLimiter.js',
   'middleware/validator.js'

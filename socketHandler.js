@@ -17,7 +17,7 @@ function initializeSocket(io) {
     // User joins a chat room
     socket.on('join_chat', async (data) => {
       const { chatId, userId } = data;
-      
+
       try {
         // Verify user is part of this chat
         const chatCheck = await pool.query(
@@ -30,7 +30,7 @@ function initializeSocket(io) {
           if (chat.patient_id === userId || chat.doctor_id === userId) {
             socket.join(`chat_${chatId}`);
             console.log(`User ${userId} joined chat ${chatId}`);
-            
+
             // Notify other users in chat
             socket.to(`chat_${chatId}`).emit('user_joined_chat', { userId });
           }
@@ -43,7 +43,7 @@ function initializeSocket(io) {
     // Send message in chat
     socket.on('send_message', async (data) => {
       const { chatId, senderId, content, attachments, messageType } = data;
-      
+
       try {
         // Verify user is part of this chat
         const chatCheck = await pool.query(
@@ -96,7 +96,7 @@ function initializeSocket(io) {
         // Send push notification to offline users
         const recipientId = chat.patient_id === senderId ? chat.doctor_id : chat.patient_id;
         const recipientConnection = connectedUsers.get(recipientId);
-        
+
         if (!recipientConnection) {
           // User is offline - would trigger push notification here
           console.log(`User ${recipientId} is offline - push notification needed`);
@@ -122,7 +122,7 @@ function initializeSocket(io) {
     // Mark messages as read
     socket.on('mark_read', async (data) => {
       const { chatId, userId } = data;
-      
+
       try {
         await pool.query(
           `UPDATE messages SET read_flag = true 
@@ -139,7 +139,7 @@ function initializeSocket(io) {
     // Doctor availability status update
     socket.on('update_availability', async (data) => {
       const { doctorId, isAvailable } = data;
-      
+
       try {
         await pool.query(
           'UPDATE doctors SET is_available = $1 WHERE user_id = $2',
@@ -150,6 +150,18 @@ function initializeSocket(io) {
         io.emit('doctor_availability_changed', { doctorId, isAvailable });
       } catch (error) {
         console.error('Error updating availability:', error);
+      }
+    });
+
+    // Emit notification to specific user
+    socket.on('send_notification', async (data) => {
+      const { userId, notification } = data;
+      
+      try {
+        // Send notification to user's room
+        io.to(`user_${userId}`).emit('new_notification', notification);
+      } catch (error) {
+        console.error('Error sending notification:', error);
       }
     });
 
@@ -164,6 +176,18 @@ function initializeSocket(io) {
       }
     });
   });
+
+  // Export helper function to send notifications from outside socket context
+  return {
+    sendNotification: (userId, notification) => {
+      io.to(`user_${userId}`).emit('new_notification', notification);
+    },
+    broadcastAppointmentUpdate: (patientId, doctorId, data) => {
+      // Send to both patient and doctor involved in the appointment
+      io.to(`user_${patientId}`).emit('appointment_updated', data);
+      io.to(`user_${doctorId}`).emit('appointment_updated', data);
+    }
+  };
 }
 
 module.exports = { initializeSocket };

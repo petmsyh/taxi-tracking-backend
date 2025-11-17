@@ -11,6 +11,10 @@ const chatRoutes = require('./routes/chats');
 const ratingRoutes = require('./routes/ratings');
 const symptomCheckerRoutes = require('./routes/symptomChecker');
 const adminRoutes = require('./routes/admin');
+const appointmentRoutes = require('./routes/appointments');
+const prescriptionRoutes = require('./routes/prescriptions');
+const notificationRoutes = require('./routes/notifications');
+const medicalRecordRoutes = require('./routes/medicalRecords');
 const { initializeSocket } = require('./socketHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
@@ -20,8 +24,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
 });
@@ -29,7 +33,7 @@ const io = socketIo(server, {
 // Security Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
 
@@ -49,8 +53,8 @@ app.use('/api/', apiLimiter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     service: 'Arba Minch University Medical Platform',
     timestamp: new Date().toISOString()
   });
@@ -63,6 +67,10 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/symptom-checker', symptomCheckerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -72,8 +80,8 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, _next) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({ 
-    error: err.message || 'Internal server error' 
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
   });
 });
 
@@ -83,7 +91,7 @@ initializeSocket(io);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🏥 Arba Minch University Medical Platform API running on port ${PORT}`);
-  console.log(`📡 Socket.IO enabled for real-time communication`);
+  console.log('📡 Socket.IO enabled for real-time communication');
   console.log(`🌐 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
 });
 
