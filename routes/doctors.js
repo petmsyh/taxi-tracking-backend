@@ -1,7 +1,6 @@
 const express = require('express');
 const pool = require('../database');
 const { authenticate, authorize } = require('../middleware/auth');
-const { validateInput } = require('../middleware/validator');
 
 const router = express.Router();
 
@@ -36,7 +35,7 @@ router.get('/', async (req, res) => {
 
     // Filter by availability
     if (available === 'true') {
-      query += ` AND d.is_available = true`;
+      query += ' AND d.is_available = true';
     }
 
     // Search by name
@@ -46,7 +45,7 @@ router.get('/', async (req, res) => {
       paramIndex++;
     }
 
-    query += ` GROUP BY u.id, d.id`;
+    query += ' GROUP BY u.id, d.id';
 
     // Filter by location (if lat/lng provided)
     if (lat && lng) {
@@ -62,7 +61,7 @@ router.get('/', async (req, res) => {
       `;
       params.push(parseFloat(lat), parseFloat(lng), parseFloat(radius));
     } else {
-      query += ` ORDER BY average_rating DESC, rating_count DESC`;
+      query += ' ORDER BY average_rating DESC, rating_count DESC';
     }
 
     const result = await pool.query(query, params);
@@ -209,7 +208,7 @@ router.put('/profile',
         return res.status(400).json({ error: 'No fields to update' });
       }
 
-      updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+      updateFields.push('updated_at = CURRENT_TIMESTAMP');
       params.push(doctorId);
 
       const query = `

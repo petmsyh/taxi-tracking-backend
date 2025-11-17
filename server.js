@@ -22,15 +22,15 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
   }
 });
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
 app.use(express.json());
@@ -41,8 +41,8 @@ app.use('/api/', apiLimiter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     service: 'Arba Minch University Medical Platform',
     timestamp: new Date().toISOString()
   });
@@ -66,10 +66,10 @@ app.use((req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({ 
-    error: err.message || 'Internal server error' 
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
   });
 });
 
@@ -79,7 +79,7 @@ initializeSocket(io);
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🏥 Arba Minch University Medical Platform API running on port ${PORT}`);
-  console.log(`📡 Socket.IO enabled for real-time communication`);
+  console.log('📡 Socket.IO enabled for real-time communication');
   console.log(`🌐 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
 });
 

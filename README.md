@@ -573,6 +573,22 @@ npm run dev
 
 This uses nodemon for auto-reloading on code changes.
 
+### Code Quality
+
+```bash
+# Run linter
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+
+# Check formatting
+npm run format:check
+```
+
 ### Environment Variables
 
 Key environment variables (see `.env.example`):
@@ -581,17 +597,123 @@ Key environment variables (see `.env.example`):
 - `PORT`: Server port
 - `CORS_ORIGIN`: Allowed frontend origin
 
+## Deployment
+
+### Docker Deployment
+
+The easiest way to deploy is using Docker and Docker Compose:
+
+1. **Build and run with Docker Compose**:
+   ```bash
+   # Copy and configure environment
+   cp .env.example .env
+   # Edit .env with production values
+   
+   # Start all services
+   docker compose up -d
+   
+   # View logs
+   docker compose logs -f api
+   
+   # Stop services
+   docker compose down
+   ```
+
+2. **Build Docker image manually**:
+   ```bash
+   docker build -t medical-platform-api:latest .
+   ```
+
+3. **Run container**:
+   ```bash
+   docker run -d \
+     --name medical-api \
+     -p 5000:5000 \
+     --env-file .env \
+     medical-platform-api:latest
+   ```
+
+### Traditional Deployment
+
+1. **Set up server** (Ubuntu/Debian):
+   ```bash
+   # Install Node.js 18+
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   
+   # Install PostgreSQL
+   sudo apt-get install -y postgresql postgresql-contrib
+   ```
+
+2. **Clone and configure**:
+   ```bash
+   git clone <repository-url>
+   cd taxi-tracking-backend
+   npm ci --only=production
+   cp .env.example .env
+   # Edit .env with production values
+   ```
+
+3. **Set up database**:
+   ```bash
+   sudo -u postgres createdb medical_platform
+   sudo -u postgres psql -d medical_platform -f Schema.sql
+   ```
+
+4. **Run with PM2** (recommended for production):
+   ```bash
+   sudo npm install -g pm2
+   pm2 start server.js --name medical-api
+   pm2 save
+   pm2 startup
+   ```
+
+### Health Checks
+
+Monitor your deployment with the health check script:
+
+```bash
+# Basic health check
+npm run health-check
+
+# Custom URL and verbose output
+node scripts/health-check.js --url https://api.example.com --verbose
+```
+
+### Production Checklist
+
+Before deploying to production, ensure:
+
+- [ ] `JWT_SECRET` is changed from default value
+- [ ] Strong database password is set
+- [ ] HTTPS/TLS is configured (use nginx/caddy as reverse proxy)
+- [ ] `CORS_ORIGIN` is set to your frontend URL
+- [ ] Database backups are configured
+- [ ] Monitoring and logging are set up
+- [ ] Firewall rules are configured
+- [ ] Rate limiting is tested
+- [ ] Health checks are configured in load balancer
+- [ ] Environment variables are secured
+- [ ] Security headers are configured (consider using helmet.js)
+
 ## Contributing
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
+
+Quick start:
 1. Fork the repository
 2. Create a feature branch
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for security policy and vulnerability reporting.
+
 ## License
 
-MIT License - see LICENSE file for details
+MIT License - see [LICENSE](LICENSE) file for details
 
 ## Support
 

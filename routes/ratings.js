@@ -38,7 +38,7 @@ router.post('/',
 
       // Check if rating already exists for this chat
       const existingRating = await pool.query(
-        `SELECT id FROM ratings WHERE chat_id = $1`,
+        'SELECT id FROM ratings WHERE chat_id = $1',
         [chat_id]
       );
 

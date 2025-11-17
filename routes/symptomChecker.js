@@ -33,9 +33,9 @@ router.post('/check',
       );
 
       res.json({
-        disclaimer: "⚠️ IMPORTANT: This is NOT a medical diagnosis. Please consult with a qualified healthcare professional for proper diagnosis and treatment.",
+        disclaimer: '⚠️ IMPORTANT: This is NOT a medical diagnosis. Please consult with a qualified healthcare professional for proper diagnosis and treatment.',
         response: aiResponse,
-        recommendation: "We strongly recommend scheduling a consultation with one of our doctors for a proper evaluation."
+        recommendation: 'We strongly recommend scheduling a consultation with one of our doctors for a proper evaluation.'
       });
     } catch (error) {
       console.error('Error in symptom checker:', error);
@@ -75,7 +75,7 @@ router.get('/history',
 // In production, this would be replaced with actual RAG + LLM implementation
 function generatePlaceholderResponse(symptoms) {
   const lowerSymptoms = symptoms.toLowerCase();
-  
+
   // Simple keyword-based placeholder logic
   const responses = {
     fever_cough: {
@@ -143,13 +143,13 @@ function generatePlaceholderResponse(symptoms) {
 
   // Simple keyword matching (to be replaced with actual AI/ML)
   let selectedResponse = responses.default;
-  
-  if ((lowerSymptoms.includes('fever') || lowerSymptoms.includes('cough')) && 
+
+  if ((lowerSymptoms.includes('fever') || lowerSymptoms.includes('cough')) &&
       (lowerSymptoms.includes('fever') && lowerSymptoms.includes('cough'))) {
     selectedResponse = responses.fever_cough;
   } else if (lowerSymptoms.includes('headache') || lowerSymptoms.includes('head pain')) {
     selectedResponse = responses.headache;
-  } else if (lowerSymptoms.includes('stomach') || lowerSymptoms.includes('nausea') || 
+  } else if (lowerSymptoms.includes('stomach') || lowerSymptoms.includes('nausea') ||
              lowerSymptoms.includes('vomit') || lowerSymptoms.includes('diarrhea')) {
     selectedResponse = responses.stomach;
   }
@@ -159,7 +159,7 @@ function generatePlaceholderResponse(symptoms) {
     self_care_suggestions: selectedResponse.suggestions,
     red_flags: selectedResponse.redFlags,
     confidence: selectedResponse.confidence,
-    note: "This is a preliminary assessment based on limited information. Individual cases vary significantly."
+    note: 'This is a preliminary assessment based on limited information. Individual cases vary significantly.'
   };
 }
 
