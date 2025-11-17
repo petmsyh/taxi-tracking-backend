@@ -153,6 +153,18 @@ function initializeSocket(io) {
       }
     });
 
+    // Emit notification to specific user
+    socket.on('send_notification', async (data) => {
+      const { userId, notification } = data;
+      
+      try {
+        // Send notification to user's room
+        io.to(`user_${userId}`).emit('new_notification', notification);
+      } catch (error) {
+        console.error('Error sending notification:', error);
+      }
+    });
+
     socket.on('disconnect', () => {
       // Remove user from connected users
       for (const [userId, connection] of connectedUsers.entries()) {
@@ -164,6 +176,18 @@ function initializeSocket(io) {
       }
     });
   });
+
+  // Export helper function to send notifications from outside socket context
+  return {
+    sendNotification: (userId, notification) => {
+      io.to(`user_${userId}`).emit('new_notification', notification);
+    },
+    broadcastAppointmentUpdate: (patientId, doctorId, data) => {
+      // Send to both patient and doctor involved in the appointment
+      io.to(`user_${patientId}`).emit('appointment_updated', data);
+      io.to(`user_${doctorId}`).emit('appointment_updated', data);
+    }
+  };
 }
 
 module.exports = { initializeSocket };

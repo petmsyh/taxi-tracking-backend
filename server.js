@@ -9,6 +9,10 @@ const chatRoutes = require('./routes/chats');
 const ratingRoutes = require('./routes/ratings');
 const symptomCheckerRoutes = require('./routes/symptomChecker');
 const adminRoutes = require('./routes/admin');
+const appointmentRoutes = require('./routes/appointments');
+const prescriptionRoutes = require('./routes/prescriptions');
+const notificationRoutes = require('./routes/notifications');
+const medicalRecordRoutes = require('./routes/medicalRecords');
 const { initializeSocket } = require('./socketHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
 
@@ -51,6 +55,10 @@ app.use('/api/chats', chatRoutes);
 app.use('/api/ratings', ratingRoutes);
 app.use('/api/symptom-checker', symptomCheckerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
 
 // 404 handler
 app.use((req, res) => {
